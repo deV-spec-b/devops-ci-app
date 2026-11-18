@@ -30,7 +30,9 @@ jobs:
           pip install -r requirements-dev.txt
 
       - name: Run pylint
-        run: pylint app tests
+        run: |
+          export PYTHONPATH=$PYTHONPATH:$(pwd)
+          pylint app tests
 
   test:
     name: Pytest
@@ -53,7 +55,9 @@ jobs:
           pip install -r requirements-dev.txt
 
       - name: Run tests
-        run: pytest
+        run: |
+          export PYTHONPATH=$PYTHONPATH:$(pwd)
+          pytest
 
   image:
     name: Build and publish
