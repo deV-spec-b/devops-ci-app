@@ -69,12 +69,14 @@ jobs:
 
       - name: Build image
         run: |
-          docker build --tag "ghcr.io/${{ github.repository }}:${{ github.sha }}" .
-          docker tag "ghcr.io/${{ github.repository }}:${{ github.sha }}" "ghcr.io/${{ github.repository }}:latest"
+          IMAGE="ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')"
+          docker build --tag "${IMAGE}:${{ github.sha }}" .
+          docker tag "${IMAGE}:${{ github.sha }}" "${IMAGE}:latest"
 
       - name: Smoke test
         run: |
-          docker run --detach --name app --publish 127.0.0.1:5000:5000 "ghcr.io/${{ github.repository }}:${{ github.sha }}"
+          IMAGE="ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')"
+          docker run --detach --name app --publish 127.0.0.1:5000:5000 "${IMAGE}:${{ github.sha }}"
           sleep 3
           curl --fail --silent http://127.0.0.1:5000/health | grep '"status":"ok"'
           docker exec app id | grep uid=999
@@ -82,6 +84,7 @@ jobs:
       - name: Publish image
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
+          IMAGE="ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')"
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io --username "${{ github.actor }}" --password-stdin
-          docker push "ghcr.io/${{ github.repository }}:${{ github.sha }}"
-          docker push "ghcr.io/${{ github.repository }}:latest"
+          docker push "${IMAGE}:${{ github.sha }}"
+          docker push "${IMAGE}:latest"
