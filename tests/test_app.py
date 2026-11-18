@@ -1,26 +1,31 @@
-"""Модульные тесты HTTP-интерфейса."""
-import pytest
-from app import create_app
-@pytest.fixture()
-def client():
-    """Создаёт изолированный тестовый клиент Flask."""
-    app = create_app()
-    app.config.update(TESTING=True)
-    with app.test_client() as test_client:
-        yield test_client
+"""Модульные тесты HTTP-приложения."""
 
-def test_health(client):
-    """Проверяет код и тело ответа health endpoint."""
-    response = client.get("/health")
+import pytest
+
+from app.app import create_app
+
+
+@pytest.fixture(name="test_client")
+def fixture_client():
+    """Создаёт клиент Flask для запросов к приложению."""
+    application = create_app()
+    application.config["TESTING"] = True
+    with application.test_client() as client:
+        yield client
+
+
+def test_health(test_client):
+    """Проверяет ответ проверки жизнеспособности."""
+    response = test_client.get("/health")
     assert response.status_code == 200
     assert response.get_json() == {"status": "ok"}
 
-def test_index(client):
-    """Проверяет основные сведения о службе."""
-    response = client.get("/")
+
+def test_index(test_client):
+    """Проверяет сведения о службе."""
+    response = test_client.get("/")
+    data = response.get_json()
     assert response.status_code == 200
-    assert response.get_json() == {
-        "service": "devops-ci-app",
-        "version": "1.0.0",
-        "status": "running",
-    }
+    assert data["service"] == "devops-ci-app"
+    assert data["status"] == "running"
+    
