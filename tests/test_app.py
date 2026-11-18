@@ -28,4 +28,3 @@ def test_index(test_client):
     assert response.status_code == 200
     assert data["service"] == "devops-ci-app"
     assert data["status"] == "running"
-    
